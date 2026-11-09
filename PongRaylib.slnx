@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="PongRaylib/PongRaylib.vcxproj" />
+  <Project Path="PongRaylib/PongRaylib.vcxproj" Id="434c017c-4b39-4cb5-844a-d83babc1b736" />
 </Solution>

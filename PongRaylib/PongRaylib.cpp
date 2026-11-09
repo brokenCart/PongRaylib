@@ -6,6 +6,7 @@ float RandomFloat0To1() {
     return GetRandomValue(0, 1000000) / 1000000.0f;
 }
 
+// TODO: better random unit vector (restricted to certain region)
 Vector2 RandomUnitVector2() {
     float angle = RandomFloat0To1() * 2.0f * PI;
     return { cosf(angle), sinf(angle) };

@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include <algorithm>
 #include <string>
+#include <random>
 
 // Window
 constexpr int SCREEN_WIDTH = 800;
@@ -17,7 +18,7 @@ constexpr float PADDLE_SPEED = 300.0f;
 
 // Ball
 constexpr float BALL_SIZE = 20.0f;
-constexpr float BALL_SPEED = 200.0f;
+constexpr float BALL_SPEED = 350.0f;
 
 // Middle line
 constexpr float MIDDLE_LINE_X = 397.0f;
@@ -29,16 +30,26 @@ constexpr float MIDDLE_LINE_DASH_SPACING = 50.0f;
 constexpr int SCORE_FONT_SIZE = 40;
 constexpr int SCORE_Y = 40;
 
-float RandomFloat0To1() {
-    return GetRandomValue(0, 1000000) / 1000000.0f;
+// Restrict the following the angle ranges:
+// (45 deg, 135 deg) & (225 deg, 315 deg)
+float RandomAllowedAngle() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+
+    std::uniform_int_distribution chooseRegion(0, 1);
+    std::uniform_real_distribution distRegion1(-45.0f, 45.0f);
+    std::uniform_real_distribution distRegion2(135.0f, 225.0f);
+
+    return (chooseRegion(gen) == 0 ? distRegion1(gen) : distRegion2(gen)) * DEG2RAD;
 }
 
-// TODO: better random unit vector (restricted to certain region)
 Vector2 RandomUnitVector2() {
-    float angle = RandomFloat0To1() * 2.0f * PI;
+    float angle = RandomAllowedAngle();
     return { cosf(angle), sinf(angle) };
 }
 
+// FIX: annoying collision of the ball with the side edge of the paddle
+// makes the ball stuck sometimes...
 bool PaddleBallCollision(Vector2& paddle, Vector2& ball) {
     // https://www.jeffreythompson.org/collision-detection/rect-rect.php
     return (

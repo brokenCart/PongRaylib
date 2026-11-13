@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <algorithm>
+#include <string>
 
 float RandomFloat0To1() {
     return GetRandomValue(0, 1000000) / 1000000.0f;
@@ -86,11 +87,19 @@ int main() {
         // RENDER
         BeginDrawing();
         ClearBackground(BLACK);
+
+        // Display middle line
+        for (float y = 0; y <= 500.0f; y += 50.0f) {
+            DrawRectangleV(Vector2{397.f, y}, {1, 25}, RAYWHITE);
+        }
+
+        // Display scores
+        DrawText(TextFormat("%i", nPlayerScore), 200, 40, 40, RAYWHITE);
+        DrawText(TextFormat("%i", nBotScore), 600, 40, 40, RAYWHITE);
+
         DrawRectangleV(playerPos, { 20, 100 }, RAYWHITE);
         DrawRectangleV(botPos, { 20, 100 }, RAYWHITE);
         DrawRectangleV(ballPos, { 20, 20 }, MAROON);
-        // TODO: display middle line
-        // TODO: display scores
         EndDrawing();
     }
 

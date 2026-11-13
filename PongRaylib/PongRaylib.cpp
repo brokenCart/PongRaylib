@@ -57,6 +57,16 @@ Vector2 RandomUnitVector2() {
     return { cosf(angle), sinf(angle) };
 }
 
+bool PaddleBallCollision(Vector2& paddle, Vector2& ball) {
+    // https://www.jeffreythompson.org/collision-detection/rect-rect.php
+    return (
+        paddle.x + PADDLE_WIDTH >= ball.x &&
+        paddle.x <= ball.x + BALL_SIZE &&
+        paddle.y + PADDLE_HEIGHT >= ball.y &&
+        paddle.y <= ball.y + BALL_SIZE
+    );
+}
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pong!");
     SetTargetFPS(TARGET_FPS);
@@ -96,7 +106,20 @@ int main() {
             }
         }
 
-        // TODO: Collision of ball and paddle
+        // Collision of ball and paddle
+        if (ballPos.x < SCREEN_WIDTH / 2.0f && PaddleBallCollision(playerPos, ballPos)) {
+            Vector2 normalVec = Vector2(1, 0);
+            Vector2 incidentUnitVec = Vector2Normalize(ballVel);
+            Vector2 reflectedUnitVec = incidentUnitVec - Vector2Scale(normalVec, 2 * Vector2DotProduct(incidentUnitVec, normalVec));
+            ballVel = Vector2Scale(reflectedUnitVec, BALL_SPEED);
+        }
+
+        if (ballPos.x > SCREEN_WIDTH / 2.0f && PaddleBallCollision(botPos, ballPos)) {
+            Vector2 normalVec = Vector2(-1, 0);
+            Vector2 incidentUnitVec = Vector2Normalize(ballVel);
+            Vector2 reflectedUnitVec = incidentUnitVec - Vector2Scale(normalVec, 2 * Vector2DotProduct(incidentUnitVec, normalVec));
+            ballVel = Vector2Scale(reflectedUnitVec, BALL_SPEED);
+        }
 
         // Reflect the ball off the boundaries
         // Elastic collision -> angle of incidence = angle of reflection

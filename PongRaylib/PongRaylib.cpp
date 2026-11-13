@@ -13,24 +13,11 @@ constexpr float PADDLE_WIDTH = 20.0f;
 constexpr float PADDLE_HEIGHT = 100.0f;
 constexpr float PADDLE_MARGIN = 25.0f; // Gap between a paddle and its side of the screen
 constexpr float PADDLE_START_Y = 200.0f;
-constexpr float PADDLE_MIN_Y = 0.0f;
-constexpr float PADDLE_MAX_Y = SCREEN_HEIGHT - PADDLE_HEIGHT;
-constexpr float PLAYER_X = PADDLE_MARGIN;
-constexpr float BOT_X = SCREEN_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH;
 constexpr float PADDLE_SPEED = 300.0f;
 
 // Ball
 constexpr float BALL_SIZE = 20.0f;
 constexpr float BALL_SPEED = 200.0f;
-constexpr float BALL_START_X = SCREEN_WIDTH / 2.0f;
-constexpr float BALL_START_Y = SCREEN_HEIGHT / 2.0f;
-constexpr float BALL_MIN_Y = 0.0f;
-constexpr float BALL_MAX_Y = SCREEN_HEIGHT - BALL_SIZE;
-constexpr float BALL_MIN_X = 0.0f;
-constexpr float BALL_MAX_X = SCREEN_WIDTH - BALL_SIZE;
-
-// Bot only chases the ball once it crosses this x position
-constexpr float BOT_TRACKING_X = SCREEN_WIDTH / 2.0f;
 
 // Middle line
 constexpr float MIDDLE_LINE_X = 397.0f;
@@ -41,14 +28,9 @@ constexpr float MIDDLE_LINE_DASH_SPACING = 50.0f;
 // Score text
 constexpr int SCORE_FONT_SIZE = 40;
 constexpr int SCORE_Y = 40;
-constexpr int PLAYER_SCORE_X = SCREEN_WIDTH / 4;
-constexpr int BOT_SCORE_X = SCREEN_WIDTH * 3 / 4;
-
-// Random
-constexpr int RANDOM_RESOLUTION = 1000000;
 
 float RandomFloat0To1() {
-    return GetRandomValue(0, RANDOM_RESOLUTION) / static_cast<float>(RANDOM_RESOLUTION);
+    return GetRandomValue(0, 1000000) / 1000000.0f;
 }
 
 // TODO: better random unit vector (restricted to certain region)
@@ -73,10 +55,10 @@ int main() {
 
     const Vector2 paddleSize = { PADDLE_WIDTH, PADDLE_HEIGHT };
     const Vector2 ballSize = { BALL_SIZE, BALL_SIZE };
-    const Vector2 ballStartPos = { BALL_START_X, BALL_START_Y };
+    const Vector2 ballStartPos = { SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
 
-    Vector2 playerPos = { PLAYER_X, PADDLE_START_Y };
-    Vector2 botPos = { BOT_X, PADDLE_START_Y };
+    Vector2 playerPos = { PADDLE_MARGIN, PADDLE_START_Y };
+    Vector2 botPos = { SCREEN_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH, PADDLE_START_Y };
     Vector2 ballPos = ballStartPos;
 
     Vector2 ballVel = Vector2Scale(RandomUnitVector2(), BALL_SPEED);
@@ -88,21 +70,21 @@ int main() {
         float dt = GetFrameTime();
 
         // INPUT
-        if (IsKeyDown(KEY_DOWN)) playerPos.y = std::min(playerPos.y + PADDLE_SPEED * dt, PADDLE_MAX_Y);
-        if (IsKeyDown(KEY_UP)) playerPos.y = std::max(playerPos.y - PADDLE_SPEED * dt, PADDLE_MIN_Y);
+        if (IsKeyDown(KEY_DOWN)) playerPos.y = std::min(playerPos.y + PADDLE_SPEED * dt, SCREEN_HEIGHT - PADDLE_HEIGHT);
+        if (IsKeyDown(KEY_UP)) playerPos.y = std::max(playerPos.y - PADDLE_SPEED * dt, 0.0f);
 
         // GAME LOGIC
         // Move the ball
         ballPos += Vector2Scale(ballVel, dt);
 
         // Make the bot follow the ball
-        if (ballPos.x > BOT_TRACKING_X) {
+        if (ballPos.x > SCREEN_WIDTH / 2.0f) {
             float step = std::min(PADDLE_SPEED * dt, std::abs(botPos.y - ballPos.y));
             if (ballPos.y > botPos.y) {
-                botPos.y = std::min(botPos.y + step, PADDLE_MAX_Y);
+                botPos.y = std::min(botPos.y + step, SCREEN_HEIGHT - PADDLE_HEIGHT);
             }
             else if (ballPos.y < botPos.y) {
-                botPos.y = std::max(botPos.y - step, PADDLE_MIN_Y);
+                botPos.y = std::max(botPos.y - step, 0.0f);
             }
         }
 
@@ -123,7 +105,7 @@ int main() {
 
         // Reflect the ball off the boundaries
         // Elastic collision -> angle of incidence = angle of reflection
-        if (ballPos.y < BALL_MIN_Y) { // Upper Boundary
+        if (ballPos.y < 0.0f) { // Upper Boundary
             // Normal vector is downwards
             // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
             Vector2 normalVec = Vector2(0, 1);
@@ -131,7 +113,7 @@ int main() {
             Vector2 reflectedUnitVec = incidentUnitVec - Vector2Scale(normalVec, 2 * Vector2DotProduct(incidentUnitVec, normalVec));
             ballVel = Vector2Scale(reflectedUnitVec, BALL_SPEED);
         }
-        else if (ballPos.y > BALL_MAX_Y) { // Lower Boundary
+        else if (ballPos.y > SCREEN_HEIGHT - BALL_SIZE) { // Lower Boundary
             // Normal vector is upwards
             Vector2 normalVec = Vector2(0, -1);
             Vector2 incidentUnitVec = Vector2Normalize(ballVel);
@@ -141,12 +123,12 @@ int main() {
 
         // Reset the ball position & velocity if beyong playing area
         // and increment the scores.
-        if (ballPos.x < BALL_MIN_X) {
+        if (ballPos.x < 0.0f) {
             ballPos = ballStartPos;
             ballVel = Vector2Scale(RandomUnitVector2(), BALL_SPEED);
             nBotScore++;
         }
-        else if (ballPos.x > BALL_MAX_X) {
+        else if (ballPos.x > SCREEN_WIDTH - BALL_SIZE) {
             ballPos = ballStartPos;
             ballVel = Vector2Scale(RandomUnitVector2(), BALL_SPEED);
             nPlayerScore++;
@@ -162,8 +144,8 @@ int main() {
         }
 
         // Display scores
-        DrawText(TextFormat("%i", nPlayerScore), PLAYER_SCORE_X, SCORE_Y, SCORE_FONT_SIZE, RAYWHITE);
-        DrawText(TextFormat("%i", nBotScore), BOT_SCORE_X, SCORE_Y, SCORE_FONT_SIZE, RAYWHITE);
+        DrawText(TextFormat("%i", nPlayerScore), SCREEN_WIDTH / 4, SCORE_Y, SCORE_FONT_SIZE, RAYWHITE);
+        DrawText(TextFormat("%i", nBotScore), SCREEN_WIDTH * 3 / 4, SCORE_Y, SCORE_FONT_SIZE, RAYWHITE);
 
         DrawRectangleV(playerPos, paddleSize, RAYWHITE);
         DrawRectangleV(botPos, paddleSize, RAYWHITE);

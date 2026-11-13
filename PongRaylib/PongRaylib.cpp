@@ -25,7 +25,7 @@ constexpr float BALL_SPEED = 200.0f;
 constexpr float BALL_START_X = SCREEN_WIDTH / 2.0f;
 constexpr float BALL_START_Y = SCREEN_HEIGHT / 2.0f;
 constexpr float BALL_MIN_Y = 0.0f;
-constexpr float BALL_MAX_Y = 420.0f;
+constexpr float BALL_MAX_Y = SCREEN_HEIGHT - BALL_SIZE;
 constexpr float BALL_MIN_X = 0.0f;
 constexpr float BALL_MAX_X = SCREEN_WIDTH - BALL_SIZE;
 

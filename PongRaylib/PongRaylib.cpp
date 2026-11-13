@@ -40,13 +40,13 @@ int main() {
         ballPos += Vector2Scale(ballVel, dt);
 
         // Make the bot follow the ball
-        // FIX: Jittering of bot paddle due to offshoot
         if (ballPos.x > 400) {
+            float step = std::min(paddleSpeed * dt, std::abs(botPos.y - ballPos.y));
             if (ballPos.y > botPos.y) {
-                botPos.y += paddleSpeed * dt;
+                botPos.y = std::min(botPos.y + step, 350.0f);
             }
             else if (ballPos.y < botPos.y) {
-                botPos.y -= paddleSpeed * dt;
+                botPos.y = std::max(botPos.y - step, 0.0f);
             }
         }
 
